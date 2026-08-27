@@ -1,13 +1,11 @@
 package org.example.heimaai.config;
 
-import org.springframework.ai.chat.prompt.ChatOptions;
-import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
-import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
-import org.springframework.ai.vectorstore.SearchRequest;
-import redis.clients.jedis.JedisPooled;
+import com.openai.client.OpenAIClient;
+import com.openai.client.OpenAIClientAsync;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
+import io.micrometer.observation.ObservationRegistry;
 import org.example.heimaai.SystemConstants;
+import org.example.heimaai.model.AlibabaOpenAiChatModel;
 import org.example.heimaai.tools.CourseTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -15,39 +13,64 @@ import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
-
-import org.springframework.ai.vectorstore.SimpleVectorStore;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.RedisClient;
-
 
 @Configuration
 public class CommonConfiguration {
+
+    @Value("${spring.ai.openai.base-url}")
+    private String baseUrl;
+
+    @Value("${spring.ai.openai.api-key}")
+    private String apiKey;
+
+    @Value("${spring.ai.openai.chat.options.model:qwen-omni-turbo}")
+    private String model;
+
+    @Bean
+    public AlibabaOpenAiChatModel alibabaOpenAiChatModel(
+            ObservationRegistry observationRegistry,
+            ToolCallingManager toolCallingManager) {
+
+        // 手动创建客户端
+        OpenAIClient client = OpenAIOkHttpClient.builder()
+                .baseUrl(baseUrl)
+                .apiKey(apiKey)
+                .build();
+
+        OpenAIClientAsync asyncClient = client.async();
+
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
+                .model(model)
+                .build();
+
+        return new AlibabaOpenAiChatModel(client, asyncClient, options, observationRegistry, toolCallingManager);
+    }
 
     @Bean
     public ChatMemory chatMemory() {
         return MessageWindowChatMemory.builder()
                 .chatMemoryRepository(new InMemoryChatMemoryRepository())
-                .maxMessages(20)   // 保留最近 20 条，超了丢旧的（系统消息保留）
+                .maxMessages(20)
                 .build();
     }
-/*
-    @Bean
-    public VectorStore vectorStore(OpenAiEmbeddingModel embeddingModel) {
-        return SimpleVectorStore.builder(embeddingModel).build();
-    }
-*/
+
     @Bean
     public RedisClient redisClient() {
         return RedisClient.create("redis://localhost:6379");
     }
+
     @Bean
     public VectorStore redisVectorStore(RedisClient redisClient, OpenAiEmbeddingModel openAiEmbeddingModel) {
         return RedisVectorStore.builder(redisClient, openAiEmbeddingModel)
@@ -61,9 +84,8 @@ public class CommonConfiguration {
                 .build();
     }
 
-
     @Bean
-    public ChatClient chatClient(OpenAiChatModel model,ChatMemory chatMemory){
+    public ChatClient chatClient(AlibabaOpenAiChatModel model, ChatMemory chatMemory){
         return ChatClient
                 .builder(model)
                 .defaultOptions(OpenAiChatOptions.builder().model("qwen-omni-turbo"))

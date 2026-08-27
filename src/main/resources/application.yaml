@@ -15,12 +15,12 @@ spring:
         model: text-embedding-v3
         dimensions: 1024
     vectorstore:
-        type: none
-        embedding-model: openai
-        redis:
-          initialize-schema: true
-          index-name: custom-index
-          prefix: custom-prefix
+      type: none
+      embedding-model: openai
+      redis:
+        initialize-schema: true
+        index-name: custom-index
+        prefix: custom-prefix
   servlet:
     multipart:
       max-file-size: 50MB       # 单个文件最大大小

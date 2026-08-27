@@ -3,7 +3,7 @@ package org.example.heimaai;
 import org.example.heimaai.utils.VectorDistanceUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
@@ -26,11 +26,10 @@ import java.util.*;
 class HeimaAiApplicationTests {
 
     @Autowired
-    private OpenAiEmbeddingModel embeddingModel;
+    private EmbeddingModel embeddingModel;
 
     @Autowired
     private VectorStore vectorStore;
-
     @Test
     public void contextLoads() {
         float[] floats = embeddingModel.embed("她站在河岸上");

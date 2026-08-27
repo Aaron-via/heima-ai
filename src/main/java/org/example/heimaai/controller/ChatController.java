@@ -71,49 +71,4 @@ public class ChatController {
                 .stream()
                 .content();
     }
-    /*
-    private Flux<String> multiModalChat(String prompt, String chatId, List<MultipartFile> files) {
-        //1.解析多媒体 - 改为手动处理音频的 base64 + data URI
-        List<Media> medias = files.stream().map(file -> {
-            try {
-                // 读取文件字节
-                byte[] fileBytes = file.getBytes();
-
-                // Base64 编码
-                String base64Data = Base64.getEncoder().encodeToString(fileBytes);
-
-                // 关键：拼上 data:;base64, 前缀
-                String dataUri = "data:;base64," + base64Data;
-
-                // 获取原始 MIME 类型
-                String contentType = file.getContentType();
-                if (contentType == null) {
-                    contentType = "application/octet-stream";
-                }
-
-                // 构造 Media，注意这里用的是 URI.create(dataUri)
-                return new Media(
-                        MimeType.valueOf(contentType),
-                        java.net.URI.create(dataUri)
-                );
-
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to read uploaded file", e);
-            }
-        }).toList();
-
-        //2.请求模型（这部分不用改）
-        return chatClient.prompt()
-                .user(u -> {
-                    u.text(prompt);
-                    for (Media media : medias) {
-                        u.media(media);
-                    }
-                })
-                .advisors(a -> a.param("chat_memory_conversation_id", chatId))
-                .stream()
-                .content();
-    }
-
-     */
 }
