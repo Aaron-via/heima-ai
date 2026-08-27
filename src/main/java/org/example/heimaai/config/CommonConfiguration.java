@@ -1,6 +1,8 @@
 package org.example.heimaai.config;
 
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -61,10 +63,11 @@ public class CommonConfiguration {
 
 
     @Bean
-    public ChatClient chatClient(OllamaChatModel model,ChatMemory chatMemory){
+    public ChatClient chatClient(OpenAiChatModel model,ChatMemory chatMemory){
         return ChatClient
                 .builder(model)
-                .defaultSystem("你是一个高冷帅气的智能助手，名字叫立花龙")
+                .defaultOptions(OpenAiChatOptions.builder().model("qwen-omni-turbo"))
+                .defaultSystem("你是一个热心善良的智能助手，名字叫奶龙")
                 .defaultAdvisors(new SimpleLoggerAdvisor(), MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
     }
