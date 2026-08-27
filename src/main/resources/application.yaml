@@ -1,0 +1,41 @@
+spring:
+  application:
+    name:heima-ai
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: qwen3:latest
+    openai:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        model: qwen3.7-plus
+      embedding:
+        model: text-embedding-v3
+        dimensions: 1024
+    vectorstore:
+        type: none
+        embedding-model: openai
+        redis:
+          initialize-schema: true
+          index-name: custom-index
+          prefix: custom-prefix
+  servlet:
+    multipart:
+      max-file-size: 50MB       # 单个文件最大大小
+      max-request-size: 100MB
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/itheima?serverTimezone=Asia/Shanghai&useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&tinyInt1isBit=false&allowPublicKeyRetrieval=true&allowMultiQueries=true&useServerPrepStmts=false
+    username: root
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      client-type: jedis
+      url: redis://localhost:6379
+logging:
+  level:
+    org.springframework.ai: debug
+    org.example.ai: debug
